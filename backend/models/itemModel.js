@@ -26,6 +26,12 @@ const itemSchema = new mongoose.Schema(
     date: {
       type: Date,
       required: [true, "Please add the date when the item was lost or found"],
+      validate: {
+        validator: function (value) {
+          return value <= new Date();
+        },
+        message: "Item date cannot be in the future",
+      },
     },
     location: {
       type: String,

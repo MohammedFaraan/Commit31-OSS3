@@ -15,6 +15,7 @@ const messageSchema = new mongoose.Schema(
     item: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Item",
+      required: [true, "Message must be associated with an item"],
     },
     content: {
       type: String,
