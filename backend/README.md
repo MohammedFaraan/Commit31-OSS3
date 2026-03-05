@@ -1,313 +1,178 @@
-# Backend API Documentation
+# Backend API Documentation: Commit31 Lost and Found
 
-This directory contains the backend codebase for the application, built with **Node.js**, **Express**, and **MongoDB**.
+This directory contains the backend codebase for the **Commit31 Lost and Found** platform, built with **Node.js**, **Express**, and **MongoDB**. It features a robust MVC architecture, JWT-based authentication, and integrated security middleware.
 
 ---
 
-# Folder Structure
+## 📂 Folder Structure
 
-The backend follows a standard **MVC (Model–View–Controller)** architecture.
+The backend follows a standard **Model–View–Controller (MVC)** architecture to ensure scalability and clean separation of concerns.
 
 ```text
 backend/
-├── config/           # Configuration files (e.g., database connection)
+├── config/           # Configuration files
 │   └── db.js         # MongoDB connection setup
-├── controllers/      # Route handlers implementing the core logic
-│   ├── authController.js # Handles registration and login logic
-│   └── userController.js # Handles user-related operations
+├── controllers/      # Route handlers (Business logic)
+│   ├── authController.js # Registration and login logic with JWT
+│   └── userController.js # User profile operations
 ├── middlewares/      # Custom Express middlewares
-├── models/           # Mongoose schemas representing database collections
-│   └── userModel.js  # User schema definition
+│   ├── authMiddleware.js # JWT token verification (protect middleware)
+│   └── security.js      # Rate limiting and security configs
+├── models/           # Mongoose schemas (Database collections)
+│   ├── userModel.js      # User schema (with bcrypt password hashing)
+│   ├── itemModel.js      # Lost/Found item schema
+│   ├── claimModel.js     # Item claim/verification schema
+│   └── messageModel.js   # User-to-user messaging schema
 ├── routes/           # API route definitions mapping URLs to controllers
-│   ├── auth.js       # Authentication routes (/api/auth)
-│   └── user.js       # User routes (/api/users)
+│   ├── auth.js           # Authentication routes (/api/auth)
+│   └── user.js           # User routes (/api/users) — protected
+├── utils/            # Helper functions
+│   └── generateToken.js  # JWT token generation utility
+├── .env              # Environment variables (Secrets & Config)
 ├── package.json      # Project dependencies and scripts
 └── server.js         # Application entry point and server configuration
+
 ```
 
 ---
 
-# Getting Started
+## Getting Started
 
-## Prerequisites
+### Prerequisites
 
 Make sure the following tools are installed:
 
-* Node.js
-* MongoDB (local instance or MongoDB Atlas)
+* **Node.js** (v14 or higher)
+* **MongoDB** (Local instance or MongoDB Atlas)
 
----
+### Installation
 
-## Installation
-
-Navigate to the backend directory:
-
+1. **Navigate to the backend directory:**
 ```bash
 cd backend
+
 ```
 
-Install dependencies:
 
+2. **Install dependencies:**
 ```bash
 npm install
+
 ```
 
----
 
-## Environment Variables
-
-Create a `.env` file in the backend directory.
-
-Example:
-
+3. **Configure Environment Variables:**
+Create a `.env` file in the `backend/` directory and add the following:
 ```env
 PORT=5000
 MONGO_URI=mongodb://127.0.0.1:27017/uni_find
+JWT_SECRET=your_super_secret_key
+JWT_EXPIRE=7d
 CORS_ORIGIN=http://localhost:3000
+
 ```
 
-| Variable    | Description                                |
-| ----------- | ------------------------------------------ |
-| PORT        | Port where the backend server runs         |
-| MONGO_URI   | MongoDB database connection string         |
-| CORS_ORIGIN | Allowed frontend origins for CORS requests |
 
-Multiple origins can be specified using commas:
-
-```env
-CORS_ORIGIN=http://localhost:3000,http://127.0.0.1:3000
-```
 
 ---
 
-# Running the Server
+## 🛡️ Security Middleware
 
-Start the server in development mode:
+The backend includes several security layers to protect against common web vulnerabilities:
 
-```bash
-npm run dev
-```
+* **Helmet:** Secures HTTP response headers to protect against clickjacking and XSS. Applied globally in `server.js`.
+* **CORS (Cross-Origin Resource Sharing):** Restricts API access to authorized frontend origins defined in `.env`.
+* **Rate Limiting:** The login endpoint is protected against brute-force attacks.
+* **Limit:** 5 login attempts per 15 minutes per IP address.
+* **Endpoint:** `POST /api/auth/login`
 
-Or run normally:
 
-```bash
-npm start
-```
-
-The backend will start at:
-
-```text
-http://localhost:5000
-```
 
 ---
 
-# API Routes
+## 🛣️ API Routes
 
-## 1. Authentication Routes
+### 1. Authentication Routes (`/api/auth`)
 
-Base URL:
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `POST` | `/register` | Registers a new user and returns a JWT. |
+| `POST` | `/login` | Authenticates user and returns a JWT. |
 
-```text
-/api/auth
-```
-
-### Register User
-
-**Endpoint**
-
-```http
-POST /api/auth/register
-```
-
-**Description**
-
-Registers a new user in the system.
-
-**Request Body**
+**Register User Request Body:**
 
 ```json
 {
   "name": "John Doe",
   "email": "john@example.com",
-  "password": "securepassword123"
+  "password": "securepassword123",
+  "role": "student",
+  "contactNumber": "9876543210"
 }
+
 ```
 
-**Response**
+> `role` defaults to `student`. `role` and `contactNumber` are optional.
 
+---
+
+### 2. User Routes (`/api/users`)
+
+*Requires `Authorization: Bearer <token>` header.*
+
+#### Get Current User Profile
+
+* **Endpoint:** `GET /me`
+* **Description:** Retrieves the authenticated user's profile information.
+* **Response (200 OK):** Returns the user object (excluding the password).
+
+---
+
+## 🔑 Authentication Flow
+
+1. **Register/Login:** User sends credentials and receives a **JWT**.
+2. **Authorization Header:** Include the token in all protected requests:
 ```text
-201 Created
+Authorization: Bearer <your_token>
+
 ```
 
-Returns the newly created user and a success message.
+
+3. **Verification:** The `protect` middleware verifies the token before granting access to specific route controllers.
 
 ---
 
-### Login User
+## 📊 Database Schemas
 
-**Endpoint**
-
-```http
-POST /api/auth/login
-```
-
-**Description**
-
-Authenticates a user using email and password.
-
-**Request Body**
-
-```json
-{
-  "email": "john@example.com",
-  "password": "securepassword123"
-}
-```
-
-**Response**
-
-```text
-200 OK
-```
-
-Returns user information and login confirmation.
+| Collection | Description |
+| --- | --- |
+| **User** | Accounts with name, email, hashed password, role, and contact info. |
+| **Item** | Lost/Found item reports with category, location, and status tracking. |
+| **Claim** | Verification requests linking a claimer to a found item with proof. |
+| **Message** | Direct messages between users, optionally linked to a specific item. |
 
 ---
 
-## 2. User Routes
+## 🏃 Running the Server
 
-Base URL:
+Start the server in development mode (using nodemon):
 
-```text
-/api/users
+```bash
+npm run dev
+
 ```
 
-### Get Current User Profile
+Run in production mode:
 
-**Endpoint**
+```bash
+npm start
 
-```http
-GET /api/users/me
 ```
 
-**Description**
+The backend will start at: `http://localhost:5000`
 
-Placeholder endpoint for retrieving the authenticated user's profile.
-
-**Response**
-
-```json
-{
-  "message": "User profile endpoint - To be implemented with JWT"
-}
 ```
 
----
+**Would you like me to help you set up the specific logic for the `itemModel.js` or the `authMiddleware.js` next?**
 
-# Security Middleware
-
-The backend includes several security-related middleware to protect the application from common web vulnerabilities.
-
----
-
-## Helmet
-
-Helmet is used to secure HTTP response headers.
-
-Helmet helps protect the application from attacks such as:
-
-* Clickjacking
-* MIME-type sniffing
-* Some Cross-Site Scripting (XSS) attacks
-
-Helmet is applied globally in `server.js`.
-
-```javascript
-app.use(helmet());
 ```
-
-This ensures every response from the server includes secure HTTP headers.
-
----
-
-## CORS (Cross-Origin Resource Sharing)
-
-CORS controls which external domains can access the API.
-
-Instead of allowing all origins, the backend allows only specific origins defined in the environment configuration.
-
-Example configuration in `server.js`:
-
-```javascript
-const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(",")
-  : ["http://localhost:3000"];
-
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true
-  })
-);
-```
-
-This prevents unauthorized domains from accessing the API.
-
----
-
-## Rate Limiting
-
-The login endpoint is protected using rate limiting to prevent brute-force attacks.
-
-Rate limiting restricts how many requests a user can send within a certain time period.
-
-Applied to:
-
-```text
-POST /api/auth/login
-```
-
-Example configuration:
-
-```javascript
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: {
-    error: "Too many login attempts. Please try again later."
-  }
-});
-```
-
-This configuration allows:
-
-* Maximum **5 login attempts**
-* Within **15 minutes**
-* Per **IP address**
-
-If the limit is exceeded, the API returns:
-
-```json
-{
-  "error": "Too many login attempts. Please try again later."
-}
-```
-
-with status code:
-
-```text
-429 Too Many Requests
-```
-
----
-
-# Summary
-
-The backend now includes the following security improvements:
-
-* Secure HTTP headers using Helmet
-* Controlled cross-origin access using CORS
-* Protection against brute-force login attempts using rate limiting
-
-These security measures help make the backend safer for real-world use and provide a reusable pattern for securing future API endpoints.

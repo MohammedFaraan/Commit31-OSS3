@@ -1,6 +1,5 @@
-const User = require("../models/userModel");
-
+// Get current logged in user profile
 // GET /api/users/me
 exports.getUserProfile = async (req, res) => {
-  res.json({ message: "User profile endpoint - To be implemented with JWT" });
+  res.json({ message: "User profile endpoint - To be implemented" });
 };

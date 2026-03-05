@@ -1,4 +1,5 @@
 const User = require("../models/userModel");
+const generateToken = require("../utils/generateToken");
 
 // Register user
 // POST /api/auth/register
@@ -7,11 +8,10 @@ exports.registerUser = async (req, res) => {
     if (!req.body) {
       return res.status(400).json({ message: "Request body is missing" });
     }
-    const { name, email, password } = req.body;
+    const { name, email, password, role, contactNumber } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Name, email, and password are required" });
     }
-
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -22,20 +22,23 @@ exports.registerUser = async (req, res) => {
       name,
       email,
       password,
+      role: role || 'student',
+      contactNumber: contactNumber || null,
     });
 
     if (user) {
       res.status(201).json({
         _id: user._id,
-        name: user.name,
         email: user.email,
+        role: user.role,
         message: "User registered successfully",
+        token: generateToken(user._id),
       });
     } else {
       res.status(400).json({ message: "Invalid user data" });
     }
   } catch (error) {
-    res.status(500).json({ message: "Server error"});
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -56,14 +59,15 @@ exports.loginUser = async (req, res) => {
     if (user && (await user.matchPassword(password))) {
       res.json({
         _id: user._id,
-        name: user.name,
         email: user.email,
+        role: user.role,
         message: "User logged in successfully",
+        token: generateToken(user._id),
       });
     } else {
       res.status(401).json({ message: "Invalid email or password" });
     }
   } catch (error) {
-    res.status(500).json({ message: "Server error"});
+    res.status(500).json({ message: "Server error" });
   }
 };
