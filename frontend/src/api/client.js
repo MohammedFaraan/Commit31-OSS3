@@ -21,7 +21,7 @@ async function request(endpoint, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  // Validate endpoint input
+  // Validate endpoint before using it
   if (typeof endpoint !== "string" || endpoint.trim() === "") {
     throw new Error("Endpoint must be a non-empty string");
   }
