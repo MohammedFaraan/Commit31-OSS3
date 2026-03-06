@@ -76,17 +76,56 @@ CORS_ORIGIN=http://localhost:3000
 
 ---
 
-## 🛡️ Security Middleware
+## API Routes
 
-The backend includes several security layers to protect against common web vulnerabilities:
+### 1. Authentication Routes
+**Base URL:** `/api/auth`
 
-* **Helmet:** Secures HTTP response headers to protect against clickjacking and XSS. Applied globally in `server.js`.
-* **CORS (Cross-Origin Resource Sharing):** Restricts API access to authorized frontend origins defined in `.env`.
-* **Rate Limiting:** The login endpoint is protected against brute-force attacks.
-* **Limit:** 5 login attempts per 15 minutes per IP address.
-* **Endpoint:** `POST /api/auth/login`
+#### Register User
+- **Endpoint:** `POST /register`
+- **Description:** Registers a new user and returns a JWT token.
+- **Request Body (JSON):**
+  ```json
+  {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "securepassword123",
+    "role": "student",
+    "contactNumber": "1234567890"
+  }
+  ```
+  > `role` and `contactNumber` are optional. `role` defaults to `student`.
+- **Response (201 Created):**
+  ```json
+  {
+    "_id": "...",
+    "email": "john@example.com",
+    "role": "student",
+    "message": "User registered successfully",
+    "token": "eyJhbGciOi..."
+  }
+  ```
 
-
+#### Login User
+- **Endpoint:** `POST /login`
+- **Description:** Authenticates a user and returns a JWT token.
+- **Request Body (JSON):**
+  ```json
+  {
+    "email": "john@example.com",
+    "password": "securepassword123"
+  }
+  ```
+- **Response (200 OK):**
+  ```json
+  {
+    "_id": "...",
+    "email": "john@example.com",
+    "role": "student",
+    "message": "User logged in successfully",
+    "token": "eyJhbGciOi..."
+  }
+  ```
 
 ---
 
