@@ -6,14 +6,32 @@ if (!rawBaseUrl) {
 
 const BASE_URL = rawBaseUrl.replace(/\/+$/, "");
 
+/**
+ * Default token provider (reads from localStorage)
+ */
+let tokenProvider = () => localStorage.getItem("token");
+
+/**
+ * Allow AuthContext or other parts of the app
+ * to provide a token dynamically.
+ */
+export function setTokenProvider(provider) {
+  tokenProvider =
+    typeof provider === "function"
+      ? provider
+      : () => localStorage.getItem("token");
+}
+
 async function request(endpoint, options = {}) {
-  const token = localStorage.getItem("token");
+  const { token: tokenOverride, ...fetchOptions } = options;
+
+  const token = tokenOverride || tokenProvider();
 
   const headers = {
-    ...options.headers,
+    ...fetchOptions.headers,
   };
 
-  if (options.body) {
+  if (fetchOptions.body) {
     headers["Content-Type"] = "application/json";
   }
 
@@ -21,7 +39,7 @@ async function request(endpoint, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  // Validate endpoint before using it
+  // Validate endpoint
   if (typeof endpoint !== "string" || endpoint.trim() === "") {
     throw new Error("Endpoint must be a non-empty string");
   }
@@ -34,7 +52,7 @@ async function request(endpoint, options = {}) {
 
   try {
     response = await fetch(`${BASE_URL}${normalizedEndpoint}`, {
-      ...options,
+      ...fetchOptions,
       headers,
     });
   } catch (err) {
@@ -58,26 +76,28 @@ async function request(endpoint, options = {}) {
 }
 
 const api = {
-  get(endpoint) {
-    return request(endpoint, { method: "GET" });
+  get(endpoint, options = {}) {
+    return request(endpoint, { ...options, method: "GET" });
   },
 
-  post(endpoint, body) {
+  post(endpoint, body, options = {}) {
     return request(endpoint, {
+      ...options,
       method: "POST",
       body: JSON.stringify(body),
     });
   },
 
-  put(endpoint, body) {
+  put(endpoint, body, options = {}) {
     return request(endpoint, {
+      ...options,
       method: "PUT",
       body: JSON.stringify(body),
     });
   },
 
-  delete(endpoint) {
-    return request(endpoint, { method: "DELETE" });
+  delete(endpoint, options = {}) {
+    return request(endpoint, { ...options, method: "DELETE" });
   },
 };
 
