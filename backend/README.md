@@ -12,23 +12,19 @@ The backend follows a standard **Model–View–Controller (MVC)** architecture 
 backend/
 ├── config/           # Configuration files
 │   └── db.js         # MongoDB connection setup
-├── controllers/      # Route handlers (Business logic)
-│   ├── authController.js # Registration and login logic with JWT
-│   └── userController.js # User profile operations
-├── middlewares/      # Custom Express middlewares
-│   ├── authMiddleware.js # JWT token verification (protect middleware)
-│   └── security.js      # Rate limiting and security configs
-├── models/           # Mongoose schemas (Database collections)
-│   ├── userModel.js      # User schema (with bcrypt password hashing)
-│   ├── itemModel.js      # Lost/Found item schema
-│   ├── claimModel.js     # Item claim/verification schema
-│   └── messageModel.js   # User-to-user messaging schema
-├── routes/           # API route definitions mapping URLs to controllers
+├── controllers/          # Route handlers implementing the core logic
+│   ├── authController.js # Handles registration and login logic
+│   ├── userController.js # Handles user-related operations (e.g., fetching profile)
+│   └── claimController.js # Handles claim-related operations
+├── middlewares/          # Custom Express middlewares (e.g., authentication, error handling)
+├── models/               # Mongoose schemas representing database collections
+│   ├── userModel.js      # User schema definition
+│   ├── itemModel.js      # Item schema (lost/found items)
+│   └── claimModel.js     # Claim schema (claims on items)
+├── routes/               # API route definitions mapping URLs to controllers
 │   ├── auth.js           # Authentication routes (/api/auth)
-│   └── user.js           # User routes (/api/users) — protected
-├── utils/            # Helper functions
-│   └── generateToken.js  # JWT token generation utility
-├── .env              # Environment variables (Secrets & Config)
+│   ├── user.js           # User routes (/api/users)
+│   └── claim.js          # Claim routes (/api/claims, /api/items/:id/claims)
 ├── package.json      # Project dependencies and scripts
 └── server.js         # Application entry point and server configuration
 
