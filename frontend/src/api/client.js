@@ -21,20 +21,26 @@ async function request(endpoint, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-const normalizedEndpoint = endpoint.startsWith("/")
-  ? endpoint
-  : `/${endpoint}`;
+  // Validate endpoint input
+  if (typeof endpoint !== "string" || endpoint.trim() === "") {
+    throw new Error("Endpoint must be a non-empty string");
+  }
 
-let response;
+  const normalizedEndpoint = endpoint.startsWith("/")
+    ? endpoint
+    : `/${endpoint}`;
 
-try {
-  response = await fetch(`${BASE_URL}${normalizedEndpoint}`, {
-    ...options,
-    headers,
-  });
-} catch (err) {
-  throw new Error(err.message || "Network request failed");
-}
+  let response;
+
+  try {
+    response = await fetch(`${BASE_URL}${normalizedEndpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch (err) {
+    throw new Error(err.message || "Network request failed");
+  }
+
   let data = null;
 
   try {
