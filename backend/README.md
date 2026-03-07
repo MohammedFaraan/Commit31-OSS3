@@ -88,7 +88,7 @@ The backend will start at: `http://localhost:5000`
 
 1. **Register/Login:** User sends credentials and receives a **JWT**.
 2. **Authorization Header:** Include the token in all protected requests:
-   ```
+   ```text
    Authorization: Bearer <your_token>
    ```
 3. **Verification:** The `protect` middleware verifies the token before granting access.
