@@ -11,6 +11,8 @@ export default function Navbar() {
   }, []);
 
   const links = [
+    { label: "Login", href: "/login" },
+    { label: "Register", href: "/register" },
     { label: "About", href: "#about" },
     { label: "How It Works", href: "#how-it-works" },
   ];
@@ -23,7 +25,7 @@ export default function Navbar() {
     >
       <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
         {/* Logo */}
-        <a href="#" className="flex items-center gap-2 group">
+        <a href="/" className="flex items-center gap-2 group">
           <div className="w-9 h-9 bg-black rounded-none flex items-center justify-center border-2 border-black group-hover:bg-green-400 transition-colors">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
               <circle cx="11" cy="11" r="8" />

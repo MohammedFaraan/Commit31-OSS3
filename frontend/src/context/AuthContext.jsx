@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
@@ -10,9 +10,11 @@ export const AuthProvider = ({ children }) => {
   // Run when app starts
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("user");
 
-    if (savedToken) {
+    if (savedToken && savedUser) {
       setToken(savedToken);
+      setUser(JSON.parse(savedUser));
       setIsAuthenticated(true);
     }
   }, []);
@@ -23,6 +25,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(true);
 
     localStorage.setItem("token", tokenValue);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logout = () => {
@@ -31,6 +34,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
 
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
   };
 
   // Helper for API calls
@@ -71,12 +75,5 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
 
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-
-  return context;
-};
+export default AuthContext; 

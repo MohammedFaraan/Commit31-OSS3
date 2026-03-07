@@ -1,37 +1,24 @@
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import { Routes , Route } from "react-router-dom";
+import { Routes, Route ,BrowserRouter} from "react-router-dom";
 import Register from "./pages/Register";
-import Hero from "./components/Hero"
-import About from "./components/About"
-import Works from "./components/Works"
-import CTA from "./components/CTA"
-
-function Home() {
-  return (
-    <>
-      <Hero/>
-      <About />
-      <Works />
-      <CTA />
-    </>
-  )
-}
+import AppLayout from "./components/AppLayout";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
 
 export default function App() {
   return (
-    <div className="antialiased text-black bg-white">
-      <Navbar />
-      
-    
-      <main>
-        <Routes>
+    <main>
+      <BrowserRouter>
+        <Routes> 
+          /*  Nested Routes */
+          <Route element={<AppLayout/>}>
         <Route path="/" element={<Home />} />
-        <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<Register />} />
+             <Route path="/login" element={<Login />} />
+          </Route>
         </Routes>
-      </main>
-   
-       <Footer />
-    </div>
+      </BrowserRouter>
+    </main>
   );
 }
+
+
