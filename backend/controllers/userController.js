@@ -32,7 +32,6 @@ exports.updateProfile = async (req, res) => {
     }
 
     const { name, contactNumber } = req.body || {};
-    console.log(req.body);
     if (name !== undefined) user.name = name;
     if (contactNumber !== undefined) user.contactNumber = contactNumber;
 
