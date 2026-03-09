@@ -66,7 +66,7 @@ exports.updateEmail = async (req, res) => {
       return res.status(401).json({ message: "Current password is incorrect" });
     }
 
-    const emailTaken = await User.findOne({ email: newEmail });
+    const emailTaken = await User.findOne({ email: newEmail, _id: { $ne: user._id } });
     if (emailTaken) {
       return res.status(400).json({ message: "Email is already in use" });
     }
@@ -82,6 +82,9 @@ exports.updateEmail = async (req, res) => {
       contactNumber: user.contactNumber,
     });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: "Email is already in use" });
+    }
     res.status(500).json({ message: "Server error" });
   }
 };
