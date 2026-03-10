@@ -15,7 +15,7 @@ UniFind is a university-focused lost & found platform. This is the **frontend** 
 
 ## Project Structure
 
-```
+```text
 frontend/
 ├── public/                  # Static assets
 ├── src/
@@ -150,5 +150,5 @@ const profile = await api.get("/api/users/profile");
 1. `AuthProvider` wraps the entire app and manages `user`, `token`, and `isAuthenticated` state.
 2. On app load, it restores auth state from `localStorage`.
 3. On login/register, the auth state is updated and persisted to `localStorage`.
-4. The Navbar conditionally renders Login/Register buttons or the user's name + Logout button based on `isAuthenticated`.
+4. The Navbar conditionally renders Login/Register buttons or the user's email + Logout button based on `isAuthenticated`.
 5. On logout, auth state and `localStorage` are cleared.

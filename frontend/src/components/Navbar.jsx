@@ -47,14 +47,14 @@ export default function Navbar() {
         <div className="hidden  md:flex items-center gap-14">
           <div className="flex items-center gap-3">
             {links.map((l) => (
-              <Link
+              <a
                 key={l.label}
-                to={l.href}
+                href={l.href}
                 className="text-sm font-black uppercase text-black border-2 border-black px-4 py-2 hover:bg-black hover:text-yellow-300 transition-colors"
                 style={{ fontFamily: "'Space Mono', monospace" }}
               >
                 {l.label}
-              </Link>
+              </a>
             ))}
             <a
               href="#report"
@@ -78,7 +78,7 @@ export default function Navbar() {
                 className="text-sm font-black uppercase text-black border-2 border-black px-4 py-2 bg-yellow-100"
                 style={{ fontFamily: "'Space Mono', monospace" }}
               >
-                👋 {user?.name || user?.email}
+                👋 {user?.email}
               </span>
               <button
                 onClick={handleLogout}

@@ -32,7 +32,7 @@ function Register() {
       const result = await api.post("/api/auth/register", data);
 
       if (result.token) {
-        const user = { _id: result._id, name: data.name, email: result.email, role: result.role };
+        const user = { _id: result._id, email: result.email, role: result.role };
         login(user, result.token);
         navigate("/"); 
       } else {
