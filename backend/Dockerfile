@@ -2,20 +2,22 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy dependency files with correct ownership
-COPY --chown=node:node package*.json ./
+# Set production mode
+ENV NODE_ENV=production
 
-# Install dependencies deterministically
-RUN npm ci
+# Copy dependency files first (better caching)
+COPY package*.json ./
 
-# Copy the rest of the application source
-COPY --chown=node:node . .
+# Install only production dependencies
+RUN npm ci --omit=dev
 
-# Expose backend port
-EXPOSE 5000
+# Copy source code
+COPY . .
 
-# Drop root privileges
+# Use non-root user
 USER node
 
-# Start development server
-CMD ["npm", "run", "dev"]
+EXPOSE 5000
+
+# Start production server
+CMD ["npm", "start"]

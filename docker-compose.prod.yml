@@ -1,0 +1,36 @@
+services:
+
+  mongo:
+    image: mongo:7
+    container_name: commit31_mongo_prod
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+  backend:
+    container_name: commit31_backend_prod
+    build:
+      context: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://mongo:27017/commit31
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  frontend:
+    container_name: commit31_frontend_prod
+    build:
+      context: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mongo_data:

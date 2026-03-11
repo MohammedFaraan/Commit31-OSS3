@@ -1,14 +1,21 @@
-FROM node:20-alpine
+# ---------- Stage 1 : Build ----------
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY --chown=node:node package*.json ./
+COPY package*.json ./
 RUN npm ci
 
-COPY --chown=node:node . .
+COPY . .
 
-USER node
+RUN npm run build
 
-EXPOSE 5173
 
-CMD ["npm", "run", "dev", "--", "--host"]
+# ---------- Stage 2 : Production ----------
+FROM nginx:alpine
+
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
