@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaUserCircle } from "react-icons/fa";
+import { FaUserCircle, FaComments } from "react-icons/fa";
 import useAuth from "../context/useAuth";
+import { useSocket } from "../context/SocketContext";
+import api from "../api/client";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { user, isAuthenticated, logout } = useAuth();
+  const socket = useSocket();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,6 +18,33 @@ export default function Navbar() {
     window.addEventListener("scroll", handle);
     return () => window.removeEventListener("scroll", handle);
   }, []);
+
+  // Fetch unread count on mount and when auth changes
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setUnreadCount(0);
+      return;
+    }
+    const fetchUnread = async () => {
+      try {
+        const data = await api.get("/api/messages/unread/count");
+        setUnreadCount(data.unreadCount || 0);
+      } catch {
+        // silent
+      }
+    };
+    fetchUnread();
+  }, [isAuthenticated]);
+
+  // Listen for new messages to increment badge
+  useEffect(() => {
+    if (!socket) return;
+    const handleNewMessage = () => {
+      setUnreadCount((prev) => prev + 1);
+    };
+    socket.on("new_message", handleNewMessage);
+    return () => socket.off("new_message", handleNewMessage);
+  }, [socket]);
 
   const links = [
     { label: "About", href: "#about" },
@@ -75,6 +106,19 @@ export default function Navbar() {
           {/* Auth Buttons — Conditional */}
           {isAuthenticated ? (
             <div className="flex items-center gap-2">
+              <Link
+                to="/messages"
+                className="relative flex items-center justify-center w-10 h-10 border-2 border-black bg-white hover:bg-black hover:text-yellow-300 text-black transition-colors shadow-[3px_3px_0px_#000] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px]"
+                title="Messages"
+                onClick={() => setUnreadCount(0)}
+              >
+                <FaComments size={20} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-black border-2 border-black w-5 h-5 flex items-center justify-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Link>
               <Link
                 to="/profile"
                 className="flex items-center justify-center w-10 h-10 border-2 border-black bg-white hover:bg-black hover:text-yellow-300 text-black transition-colors shadow-[3px_3px_0px_#000] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px]"
@@ -146,6 +190,19 @@ export default function Navbar() {
           {/* Mobile Auth Buttons */}
           {isAuthenticated ? (
             <>
+              <Link
+                to="/messages"
+                onClick={() => { setMenuOpen(false); setUnreadCount(0); }}
+                className="text-sm font-black uppercase text-black border-b-2 border-black px-6 py-4 bg-white hover:bg-black hover:text-yellow-300 transition-colors flex items-center gap-2"
+                style={{ fontFamily: "'Space Mono', monospace" }}
+              >
+                <FaComments size={18} /> Messages
+                {unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-[10px] font-black border-2 border-black px-1.5 py-0.5 ml-auto">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Link>
               <Link
                 to="/profile"
                 onClick={() => setMenuOpen(false)}

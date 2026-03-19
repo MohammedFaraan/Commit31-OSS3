@@ -38,7 +38,20 @@ exports.sendMessage = async (req, res) => {
       content,
     });
 
-    return res.status(201).json(message);
+    // Populate for the response and socket emit
+    const populated = await Message.findById(message._id)
+      .populate("sender", "name email")
+      .populate("receiver", "name email")
+      .populate("item", "name type");
+
+    // Emit real-time event to receiver
+    const io = req.app.get("io");
+    if (io) {
+      const { notifyUser } = require("./utils/socket");
+      notifyUser(io, receiver, "new_message", populated);
+    }
+
+    return res.status(201).json(populated);
   } catch (error) {
     console.error("Error sending message:", error);
     return res.status(500).json({ message: "Server error" });
