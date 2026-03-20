@@ -70,18 +70,19 @@ export default function Messages() {
   // ─── Fetch messages when active chat changes ───
   useEffect(() => {
     if (!activeChat) return;
+    let ignore = false;
 
     const fetchMessages = async () => {
+      setMessages([]);
+      setActiveItemId(null);
       setMsgLoading(true);
       try {
         const data = await api.get(`/api/messages/with/${activeChat._id}`);
+        if (ignore) return;
         setMessages(data);
 
-        // Extract item id from the latest message for replying
-        if (data.length > 0) {
-          const lastMsg = data[data.length - 1];
-          setActiveItemId(lastMsg.item?._id || lastMsg.item);
-        }
+        const lastMsg = data[data.length - 1];
+        setActiveItemId(lastMsg?.item?._id || lastMsg?.item || null);
 
         // Mark unread messages as read
         const unread = data.filter(
@@ -97,6 +98,7 @@ export default function Messages() {
           }
         }
 
+        if (ignore) return;
         // Update conversation list to clear unread indicator
         if (unread.length > 0) {
           setConversations((prev) =>
@@ -108,12 +110,16 @@ export default function Messages() {
           );
         }
       } catch (err) {
+        if (ignore) return;
         console.error("Failed to fetch messages:", err);
       } finally {
-        setMsgLoading(false);
+        if (!ignore) setMsgLoading(false);
       }
     };
     fetchMessages();
+    return () => {
+      ignore = true;
+    };
   }, [activeChat, user?._id]);
 
   // ─── Auto-scroll to bottom ───
@@ -162,8 +168,9 @@ export default function Messages() {
       const senderId = msg.sender?._id || msg.sender;
       if (activeChat && senderId === activeChat._id) {
         setMessages((prev) => [...prev, msg]);
+        setActiveItemId((prev) => prev || msg.item?._id || msg.item || null);
         // Mark as read immediately
-        api.patch(`/api/messages/${msg._id}/read`).catch(() => {});
+        api.patch(`/api/messages/${msg._id}/read`).catch(() => { });
       }
     };
 
@@ -256,9 +263,8 @@ export default function Messages() {
     <div className="min-h-[calc(100vh-64px)] mt-16 flex" style={fontStyle}>
       {/* ─── Conversation List ─── */}
       <div
-        className={`w-full md:w-[360px] md:min-w-[360px] border-r-4 border-black bg-white flex flex-col ${
-          showChat ? "hidden md:flex" : "flex"
-        }`}
+        className={`w-full md:w-[360px] md:min-w-[360px] border-r-4 border-black bg-white flex flex-col ${showChat ? "hidden md:flex" : "flex"
+          }`}
       >
         {/* Header */}
         <div className="border-b-4 border-black bg-yellow-300 p-4">
@@ -303,21 +309,19 @@ export default function Messages() {
                 <button
                   key={partner._id}
                   onClick={() => selectConversation(partner)}
-                  className={`w-full text-left px-4 py-3 border-b-2 border-black transition-colors cursor-pointer ${
-                    isActive
-                      ? "bg-yellow-300"
-                      : isUnread
+                  className={`w-full text-left px-4 py-3 border-b-2 border-black transition-colors cursor-pointer ${isActive
+                    ? "bg-yellow-300"
+                    : isUnread
                       ? "bg-yellow-50 hover:bg-yellow-100"
                       : "bg-white hover:bg-gray-50"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`text-sm uppercase truncate ${
-                            isUnread ? "font-black" : "font-bold"
-                          }`}
+                          className={`text-sm uppercase truncate ${isUnread ? "font-black" : "font-bold"
+                            }`}
                         >
                           {partner.name}
                         </span>
@@ -326,11 +330,10 @@ export default function Messages() {
                         )}
                       </div>
                       <p
-                        className={`text-xs mt-1 truncate ${
-                          isUnread
-                            ? "font-bold text-black"
-                            : "font-normal opacity-60"
-                        }`}
+                        className={`text-xs mt-1 truncate ${isUnread
+                          ? "font-bold text-black"
+                          : "font-normal opacity-60"
+                          }`}
                       >
                         {isSender ? "You: " : ""}
                         {lastMsg?.content}
@@ -349,9 +352,8 @@ export default function Messages() {
 
       {/* ─── Chat Window ─── */}
       <div
-        className={`flex-1 flex flex-col bg-gray-50 ${
-          !showChat ? "hidden md:flex" : "flex"
-        }`}
+        className={`flex-1 flex flex-col bg-gray-50 ${!showChat ? "hidden md:flex" : "flex"
+          }`}
       >
         {!activeChat ? (
           /* Empty state */
@@ -373,6 +375,7 @@ export default function Messages() {
             {/* Chat header */}
             <div className="border-b-4 border-black bg-yellow-300 p-4 flex items-center gap-3">
               <button
+                aria-label="Back to conversations"
                 onClick={() => setShowChat(false)}
                 className="md:hidden w-8 h-8 border-2 border-black bg-white flex items-center justify-center hover:bg-black hover:text-yellow-300 transition-colors cursor-pointer"
               >
@@ -421,11 +424,10 @@ export default function Messages() {
                       className={`flex ${isMine ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[75%] border-2 border-black p-3 ${
-                          isMine
-                            ? "bg-yellow-300 shadow-[3px_3px_0px_#000]"
-                            : "bg-white shadow-[3px_3px_0px_#000]"
-                        }`}
+                        className={`max-w-[75%] border-2 border-black p-3 ${isMine
+                          ? "bg-yellow-300 shadow-[3px_3px_0px_#000]"
+                          : "bg-white shadow-[3px_3px_0px_#000]"
+                          }`}
                       >
                         <p className="text-sm break-words" style={fontStyle}>
                           {msg.content}
@@ -485,6 +487,7 @@ export default function Messages() {
                   />
                   <button
                     type="submit"
+                    aria-label="Send message"
                     disabled={!input.trim() || sending}
                     className="border-2 border-black bg-yellow-300 px-5 font-black uppercase hover:bg-black hover:text-yellow-300 transition-all shadow-[3px_3px_0px_#000] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                     style={fontStyle}
